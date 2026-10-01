@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Эмодзи → ICO конвертер | Многоразмерная иконка</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none; /* для удобства перетаскивания, но текст можно копировать */
+        }
+
+        body {
+            background: linear-gradient(145deg, #f6f9fc 0%, #eef2f7 100%);
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* карточка приложения */
+        .app-card {
+            max-width: 780px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.94);
+            backdrop-filter: blur(2px);
+            border-radius: 48px;
+            box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0,0,0,0.05);
+            padding: 28px 30px 38px;
+            transition: all 0.2s ease;
+            border: 1px solid rgba(255,255,255,0.6);
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #2c3e66, #1a2a44);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            margin: 0 0 0.2rem 0;
+            letter-spacing: -0.3px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        h1 small {
+            font-size: 0.85rem;
+            background: #e9edf2;
+            padding: 4px 12px;
+            border-radius: 60px;
+            font-weight: normal;
+            color: #2c4f7c;
+            background-clip: unset;
+            -webkit-background-clip: unset;
+            letter-spacing: 0;
+        }
+
+        .sub {
+            color: #4a627a;
+            border-left: 4px solid #ff9f4a;
+            padding-left: 16px;
+            margin: 16px 0 24px 0;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        /* эмодзи секция */
+        .emoji-section {
+            background: #ffffffdd;
+            border-radius: 48px;
+            padding: 18px 20px;
+            margin-bottom: 28px;
+            box-shadow: 0 6px 12px -8px rgba(0,0,0,0.1);
+            border: 1px solid #ffffff;
+        }
+
+        .label-icon {
+            font-weight: 600;
+            color: #1f3b4c;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1rem;
+        }
+
+        .emoji-input-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        #emojiInput {
+            font-size: 2.8rem;
+            width: 120px;
+            text-align: center;
+            background: #f2f5f9;
+            border: 2px solid #cfddee;
+            border-radius: 64px;
+            padding: 8px 5px;
+            font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', 'Twemoji Mozilla', sans-serif;
+            transition: 0.2s;
+            color: #1e2f3e;
+        }
+
+        #emojiInput:focus {
+            border-color: #ff9f4a;
+            outline: none;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(255, 159, 74, 0.3);
+        }
+
+        .preview-container {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .preview-box {
+            background: #fafcff;
+            border-radius: 32px;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            box-shadow: inset 0 1px 3px #0001, 0 2px 3px #fff8;
+        }
+
+        .preview-canvas-card {
+            text-align: center;
+        }
+
+        .preview-canvas-card span {
+            font-size: 0.75rem;
+            color: #5f7f9e;
+        }
+
+        canvas#previewCanvas {
+            background: repeating-conic-gradient(#ddd 0% 25%, #fff 0% 50%) 50% / 20px 20px;
+            border-radius: 20px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+            display: block;
+            width: 96px;
+            height: 96px;
+        }
+
+        /* настройки */
+        .settings {
+            margin: 28px 0 20px;
+        }
+
+        .size-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 15px 0 20px;
+            background: #f0f4fa;
+            padding: 16px 20px;
+            border-radius: 48px;
+        }
+
+        .size-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: white;
+            padding: 6px 16px;
+            border-radius: 60px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            cursor: pointer;
+            transition: 0.1s;
+        }
+
+        .size-option:hover {
+            background: #ffe6d5;
+        }
+
+        .size-option input {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #ff8c42;
+        }
+
+        .bg-option {
+            display: flex;
+            gap: 24px;
+            align-items: center;
+            margin: 12px 0 0 8px;
+            flex-wrap: wrap;
+        }
+
+        .bg-radio {
+            display: flex;
+            gap: 8px;
+            background: #eef2f7;
+            padding: 5px 15px;
+            border-radius: 60px;
+        }
+
+        button {
+            background: linear-gradient(105deg, #2c3e66, #1f3452);
+            border: none;
+            padding: 14px 28px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 60px;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 8px 18px rgba(0,0,0,0.15);
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            justify-content: center;
+        }
+
+        button:hover {
+            background: linear-gradient(105deg, #3c5382, #2a3e62);
+            transform: scale(0.98);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        button:active {
+            transform: scale(0.96);
+        }
+
+        .status {
+            margin-top: 24px;
+            background: #e7edf5;
+            border-radius: 48px;
+            padding: 12px 18px;
+            font-size: 0.85rem;
+            color: #1f4970;
+            text-align: center;
+            font-weight: 500;
+            transition: 0.2s;
+        }
+
+        .loader {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.6s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        footer {
+            font-size: 0.7rem;
+            text-align: center;
+            margin-top: 28px;
+            color: #7c8ea0;
+        }
+
+        hr {
+            margin: 20px 0 10px;
+            border: 0;
+            height: 1px;
+            background: linear-gradient(to right, #cbdae9, transparent);
+        }
+    </style>
+</head>
+<body>
+<div class="app-card">
+    <h1>🎨 Эмодзи → ICO <small>.ico конвертер</small></h1>
+    <div class="sub">Преврати любой эмодзи в профессиональную иконку с поддержкой нескольких размеров</div>
+
+    <div class="emoji-section">
+        <div class="label-icon">😍 Выберите эмодзи</div>
+        <div class="emoji-input-group">
+            <input type="text" id="emojiInput" maxlength="4" value="🚀" placeholder="😀">
+            <div class="preview-box">
+                <div class="preview-canvas-card">
+                    <canvas id="previewCanvas" width="96" height="96" style="width:96px;height:96px"></canvas>
+                    <span>превью 96px</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="settings">
+        <div class="label-icon">📐 Размеры внутри ICO (выберите нужные)</div>
+        <div class="size-grid" id="sizesContainer">
+            <!-- динамические чекбоксы для размеров: 16, 32, 48, 64, 128, 256 -->
+        </div>
+
+        <div class="label-icon">🎨 Фон иконки</div>
+        <div class="bg-option">
+            <label class="bg-radio">
+                <input type="radio" name="bgType" value="transparent" checked> Прозрачный
+            </label>
+            <label class="bg-radio">
+                <input type="radio" name="bgType" value="white"> Белый фон
+            </label>
+            <label class="bg-radio">
+                <input type="radio" name="bgType" value="lightgray"> Светло-серый
+            </label>
+        </div>
+    </div>
+
+    <button id="downloadBtn">⬇️ Скачать .ICO файл (многоразмерный)</button>
+    <div id="statusMsg" class="status">✅ Готов к работе. Выберите размеры и нажмите кнопку.</div>
+    <hr />
+    <footer>Формат ICO содержит встроенные PNG (16,32,48,64,128,256px). Эмодзи отрисовывается в каждом размере с высоким качеством.</footer>
+</div>
+
+<script>
+    (function() {
+        // Доступные размеры для иконки (стандартные, max 256)
+        const AVAILABLE_SIZES = [16, 32, 48, 64, 128, 256];
+        // Храним выбранные размеры (по умолчанию все)
+        let selectedSizes = new Set(AVAILABLE_SIZES);
+
+        // DOM элементы
+        const emojiInput = document.getElementById('emojiInput');
+        const previewCanvas = document.getElementById('previewCanvas');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const statusDiv = document.getElementById('statusMsg');
+        const sizesContainer = document.getElementById('sizesContainer');
+
+        // Переменная для отмены генерации (для параллельных кликов)
+        let isGenerating = false;
+
+        // --- Рендерим чекбоксы размеров ---
+        function renderSizeCheckboxes() {
+            sizesContainer.innerHTML = '';
+            AVAILABLE_SIZES.forEach(size => {
+                const label = document.createElement('label');
+                label.className = 'size-option';
+                const cb = document.createElement('input');
+                cb.type = 'checkbox';
+                cb.value = size;
+                cb.checked = selectedSizes.has(size);
+                cb.addEventListener('change', (e) => {
+                    if (e.target.checked) {
+                        selectedSizes.add(size);
+                    } else {
+                        selectedSizes.delete(size);
+                    }
+                    updateStatusMessage(`Размеры: ${Array.from(selectedSizes).join(', ')}`, false);
+                });
+                const span = document.createElement('span');
+                span.textContent = `${size}px`;
+                label.appendChild(cb);
+                label.appendChild(span);
+                sizesContainer.appendChild(label);
+            });
+        }
+
+        function updateStatusMessage(msg, isError = false) {
+            statusDiv.innerHTML = msg;
+            statusDiv.style.background = isError ? '#ffe1de' : '#e7edf5';
+            statusDiv.style.color = isError ? '#b33' : '#1f4970';
+        }
+
+        // Отрисовка эмодзи на canvas (по переданному размеру и bg)
+        function drawEmojiOnCanvas(emojiChar, targetSize, bgType) {
+            return new Promise((resolve) => {
+                const canvas = document.createElement('canvas');
+                canvas.width = targetSize;
+                canvas.height = targetSize;
+                const ctx = canvas.getContext('2d', { alpha: true });
+
+                // Очистка и заливка фона
+                if (bgType === 'transparent') {
+                    ctx.clearRect(0, 0, targetSize, targetSize);
+                } else {
+                    let bgColor = '#FFFFFF';
+                    if (bgType === 'lightgray') bgColor = '#F0F2F5';
+                    else if (bgType === 'white') bgColor = '#FFFFFF';
+                    ctx.fillStyle = bgColor;
+                    ctx.fillRect(0, 0, targetSize, targetSize);
+                }
+
+                // Рисуем эмодзи — используем системный шрифт эмодзи
+                // Динамический размер шрифта: ~80% от размера холста для идеального центрирования
+                let fontSize = Math.floor(targetSize * 0.78);
+                // Ограничим максимальный шрифт для гигантов
+                fontSize = Math.min(fontSize, targetSize - 4);
+                const fontFamily = "'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', 'Twemoji Mozilla', 'EmojiOne Color', 'Android Emoji', sans-serif";
+                ctx.font = `${fontSize}px ${fontFamily}`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                // Проверка на валидный emoji, если пусто то подставляем стандартный
+                const textToDraw = emojiChar && emojiChar.trim().length > 0 ? emojiChar : '😊';
+                
+                // Отрисовка с легкой тенью? нет, сохраняем чёткость
+                ctx.fillStyle = '#000000'; // эмодзи сами цветные, fillStyle не влияет на цвет шрифта эмодзи (эмодзи цветные)
+                // Рисуем текст в центре
+                ctx.fillText(textToDraw, targetSize / 2, targetSize / 2);
+                
+                // Получить Blob PNG
+                canvas.toBlob(blob => {
+                    if (blob) {
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                            resolve({
+                                buffer: reader.result,
+                                size: targetSize,
+                                width: targetSize,
+                                height: targetSize
+                            });
+                        };
+                        reader.readAsArrayBuffer(blob);
+                    } else {
+                        // fallback (ошибка)
+                        resolve(null);
+                    }
+                }, 'image/png');
+            });
+        }
+
+        // Построение полноценного ICO файла из массива PNG буферов и их размеров
+        function buildICOFile(imagesData) {
+            // imagesData: [{ buffer: ArrayBuffer, size: number, width, height }]
+            if (!imagesData.length) return null;
+            
+            const numImages = imagesData.length;
+            // HEADER: 6 байт
+            const headerSize = 6;
+            const entrySize = 16;
+            const dirSize = headerSize + (entrySize * numImages);
+            
+            // Считаем общий размер файла + позиции
+            let currentOffset = dirSize;
+            const entries = [];
+            const chunks = [];
+            
+            for (let i = 0; i < imagesData.length; i++) {
+                const img = imagesData[i];
+                const bufLen = img.buffer.byteLength;
+                // Для ICO: ширина/высота (если 256 то ставим 0)
+                let widthByte = img.size === 256 ? 0 : img.size;
+                let heightByte = img.size === 256 ? 0 : img.size;
+                // Цветность 0 (PNG с 32bit)
+                const colorCount = 0;
+                const reserved = 0;
+                const planes = 0;      // для PNG внутри ICO рекомендуют 0
+                const bitCount = 0;    // 0 для PNG
+                const bytesInRes = bufLen;
+                const imageOffset = currentOffset;
+                
+                entries.push({
+                    widthByte, heightByte, colorCount, reserved,
+                    planes, bitCount, bytesInRes, imageOffset
+                });
+                
+                chunks.push({
+                    offset: currentOffset,
+                    buffer: img.buffer
+                });
+                currentOffset += bufLen;
+            }
+            
+            // Выделяем ArrayBuffer под весь ICO
+            const totalSize = dirSize + chunks.reduce((sum, c) => sum + c.buffer.byteLength, 0);
+            const icoBuffer = new ArrayBuffer(totalSize);
+            const dv = new DataView(icoBuffer);
+            let offset = 0;
+            
+            // 1) ICONDIR (reserved=0, type=1, count=numImages)
+            dv.setUint16(offset, 0, true);        // reserved
+            offset += 2;
+            dv.setUint16(offset, 1, true);        // тип 1 = ICO
+            offset += 2;
+            dv.setUint16(offset, numImages, true); // количество изображений
+            offset += 2;
+            
+            // 2) запишем ICONDIRENTRY для каждого
+            for (let i = 0; i < entries.length; i++) {
+                const e = entries[i];
+                dv.setUint8(offset, e.widthByte);
+                offset += 1;
+                dv.setUint8(offset, e.heightByte);
+                offset += 1;
+                dv.setUint8(offset, e.colorCount);
+                offset += 1;
+                dv.setUint8(offset, e.reserved);
+                offset += 1;
+                dv.setUint16(offset, e.planes, true);
+                offset += 2;
+                dv.setUint16(offset, e.bitCount, true);
+                offset += 2;
+                dv.setUint32(offset, e.bytesInRes, true);
+                offset += 4;
+                dv.setUint32(offset, e.imageOffset, true);
+                offset += 4;
+            }
+            
+            // 3) копируем PNG данные
+            for (let chunk of chunks) {
+                const srcBuffer = new Uint8Array(chunk.buffer);
+                const destView = new Uint8Array(icoBuffer, chunk.offset, srcBuffer.length);
+                destView.set(srcBuffer);
+            }
+            
+            return icoBuffer;
+        }
+        
+        // Главная функция конвертации (генерирует многоразмерный ICO)
+        async function convertEmojiToIco(emoji, bgType, sizesArray) {
+            if (!sizesArray.length) {
+                throw new Error('❌ Не выбран ни один размер для иконки! Отметьте хотя бы один размер.');
+            }
+            // Обработка пустого эмодзи
+            let finalEmoji = emoji.trim();
+            if (finalEmoji === "") finalEmoji = "😊";
+            // Ограничим длину, чтобы не рисовать несколько символов (но эмодзи могут быть составными, ок)
+            // Просто возьмем первые символы как есть, поддерживает семейства эмодзи.
+            
+            // Параллельно отрисовываем все размеры (каждый PNG генерируется)
+            const tasks = sizesArray.map(size => drawEmojiOnCanvas(finalEmoji, size, bgType));
+            const results = await Promise.all(tasks);
+            
+            // Фильтруем успешные результаты (если какой-то null пропускаем)
+            const validImages = results.filter(r => r !== null && r.buffer);
+            if (validImages.length === 0) {
+                throw new Error('Не удалось сгенерировать ни одного изображения для иконки');
+            }
+            
+            // Сортируем по размеру (опционально, но порядок не важен)
+            validImages.sort((a,b) => a.size - b.size);
+            // Строим финальный ICO
+            const icoArrayBuffer = buildICOFile(validImages);
+            return icoArrayBuffer;
+        }
+        
+        // Обновить preview (96px) на основе текущих настроек
+        async function updatePreview() {
+            let emoji = emojiInput.value.trim();
+            if (emoji === "") emoji = "😊";
+            const bgType = document.querySelector('input[name="bgType"]:checked').value;
+            try {
+                const result = await drawEmojiOnCanvas(emoji, 96, bgType);
+                if (result && result.buffer) {
+                    // отображаем blob на previewCanvas
+                    const blob = new Blob([result.buffer], { type: 'image/png' });
+                    const url = URL.createObjectURL(blob);
+                    const ctx = previewCanvas.getContext('2d');
+                    const img = new Image();
+                    img.onload = () => {
+                        previewCanvas.width = 96;
+                        previewCanvas.height = 96;
+                        ctx.clearRect(0, 0, 96, 96);
+                        ctx.drawImage(img, 0, 0, 96, 96);
+                        URL.revokeObjectURL(url);
+                    };
+                    img.src = url;
+                }
+            } catch(e) {
+                console.warn("preview error", e);
+            }
+        }
+        
+        // Событие изменения эмодзи или фона -> обновить preview
+        emojiInput.addEventListener('input', () => updatePreview());
+        document.querySelectorAll('input[name="bgType"]').forEach(radio => {
+            radio.addEventListener('change', () => updatePreview());
+        });
+        
+        // Скачивание ICO
+        downloadBtn.addEventListener('click', async () => {
+            if (isGenerating) {
+                updateStatusMessage("⏳ Генерация уже выполняется, подождите...", false);
+                return;
+            }
+            
+            // получаем текущие настройки
+            let emoji = emojiInput.value.trim();
+            if (emoji === "") {
+                emoji = "😊";
+                emojiInput.value = "😊";
+            }
+            const bgType = document.querySelector('input[name="bgType"]:checked').value;
+            const sizesToUse = Array.from(selectedSizes);
+            if (sizesToUse.length === 0) {
+                updateStatusMessage("⚠️ Ошибка: выберите хотя бы один размер (16,32,48,64,128,256)", true);
+                return;
+            }
+            
+            isGenerating = true;
+            const originalBtnText = downloadBtn.innerHTML;
+            downloadBtn.innerHTML = `<span>🔄 Генерируем ICO</span><div class="loader"></div>`;
+            downloadBtn.disabled = true;
+            
+            try {
+                updateStatusMessage(`🎨 Рендерим ${sizesToUse.length} размеров: ${sizesToUse.join(', ')} px ...`, false);
+                const icoBuffer = await convertEmojiToIco(emoji, bgType, sizesToUse);
+                if (!icoBuffer) throw new Error("ICO буфер пуст");
+                
+                const blob = new Blob([icoBuffer], { type: 'image/x-icon' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                const fileName = `emoji_${emoji.codePointAt(0) || 'icon'}.ico`;
+                a.href = url;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                updateStatusMessage(`✅ Успех! Иконка (.ico) содержит размеры: ${sizesToUse.join(', ')}px. Эмодзи "${emoji}" конвертирован.`, false);
+            } catch (err) {
+                console.error(err);
+                updateStatusMessage(`❌ Ошибка: ${err.message || "Не удалось создать ICO"}`, true);
+            } finally {
+                isGenerating = false;
+                downloadBtn.innerHTML = originalBtnText;
+                downloadBtn.disabled = false;
+            }
+        });
+        
+        // Инициализация чекбоксов и начального превью
+        renderSizeCheckboxes();
+        updatePreview();
+        
+        // дополнительно реагируем на изменение размеров обновлением статуса
+        function refreshFromSizes() {
+            if (selectedSizes.size === 0) {
+                updateStatusMessage("⚠️ Внимание: не выбран ни один размер. Иконка не создастся. Отметьте размеры.", true);
+            } else {
+                updateStatusMessage(`💡 Выбрано размеров: ${Array.from(selectedSizes).join(', ')}. Нажмите скачать.`, false);
+            }
+        }
+        // слушаем изменение через мутации? проще при каждом клике на чекбокс вызывать refresh
+        const originalUpdate = () => refreshFromSizes();
+        // добавим listener на каждый чекбокс (динамически)
+        const observer = new MutationObserver(() => {
+            document.querySelectorAll('.size-option input').forEach(cb => {
+                cb.removeEventListener('change', refreshFromSizes);
+                cb.addEventListener('change', refreshFromSizes);
+            });
+        });
+        observer.observe(sizesContainer, { childList: true, subtree: true });
+        refreshFromSizes();
+    })();
+</script>
+</body>
+</html>
